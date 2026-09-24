@@ -1,0 +1,20 @@
+{
+  "http": "http://192.168.1.188:8090",
+  "com": "COM5",
+  "device_sn": "E8-9C-25-A5-67-EB10",
+  "dianGangIp": "192.168.15.201",
+  "dianGangPort": 7408,
+  "dianGangLocalPort": 8410,
+  "dianGangProtocol": "udp",
+  "dianGangTimeMs": 1000,
+  "dianGangMinLengthCm": 1,
+  "dianGangMaxLengthCm": 9,
+  "dianGangShakeLowLengthCm": 3,
+  "dianGangShakeHighLengthCm": 5,
+  "dianGangShakeStepTimeMs": 300,
+  "activationIp": "",
+  "activationLocalPort": 8002,
+  "activationRemotePort": 8001,
+  "activationTimeoutMs": 5000,
+  "activationDialogShowClose": false
+}
