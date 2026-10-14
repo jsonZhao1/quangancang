@@ -76,7 +76,7 @@ module.exports = {
         linux: {
           target: ['AppImage'],
           executableArgs: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage'],
-          artifactName: 'VR管理平台.${ext}'
+          artifactName: 'VR.${ext}'
         },
         win: {
           icon: './electron-builder-output-dir/.icon-ico/icon.ico',
