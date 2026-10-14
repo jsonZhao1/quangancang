@@ -75,6 +75,7 @@ module.exports = {
         productName: 'VR管理平台',
         linux: {
           target: ['AppImage'],
+          executableArgs: ['--no-sandbox'],
           artifactName: 'VR管理平台.${ext}'
         },
         win: {

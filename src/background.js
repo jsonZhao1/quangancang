@@ -5,6 +5,9 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import dgram from 'dgram'
 import os from 'os'
 import cfg from './globalCfg'
+
+app.commandLine.appendSwitch('no-sandbox')
+
 cfg()
 const Store = require('electron-store')
 const store = new Store()
