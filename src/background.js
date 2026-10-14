@@ -5,13 +5,34 @@ import { createProtocol } from 'vue-cli-plugin-electron-builder/lib'
 import dgram from 'dgram'
 import os from 'os'
 import cfg from './globalCfg'
+const fs = require('fs')
+const path = require('path')
 
+const startupLogPath = process.platform === 'linux' ? '/tmp/vr-manager-startup.log' : null
+function writeStartupLog(message, error) {
+  if (!startupLogPath) {
+    return
+  }
+
+  try {
+    const errorText = error ? ` ${error.stack || error.message || error}` : ''
+    fs.appendFileSync(startupLogPath, `[${new Date().toISOString()}] ${message}${errorText}\n`)
+  } catch (logError) {
+    console.error('Failed to write startup log:', logError)
+  }
+}
+
+writeStartupLog('main process loaded')
+app.disableHardwareAcceleration()
 app.commandLine.appendSwitch('no-sandbox')
+app.commandLine.appendSwitch('disable-gpu')
+app.commandLine.appendSwitch('disable-dev-shm-usage')
+process.on('uncaughtException', error => writeStartupLog('uncaughtException', error))
+process.on('unhandledRejection', error => writeStartupLog('unhandledRejection', error))
 
 cfg()
 const Store = require('electron-store')
 const store = new Store()
-const path = require('path')
 const isDevelopment = process.env.NODE_ENV !== 'production'
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true, stream: true }}
@@ -161,6 +182,7 @@ function sendActivationUdpMessage(event, message, responseChannel) {
 }
 
 async function createWindow() {
+  writeStartupLog('create main window')
   // Create the browser window.
   win = new BrowserWindow({
     width: 1200,
@@ -183,6 +205,13 @@ async function createWindow() {
       // nodeIntegrationInSubFrames: true
     }
   })
+  win.on('closed', () => writeStartupLog('main window closed'))
+  win.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    writeStartupLog(`main window did-fail-load ${errorCode} ${errorDescription} ${validatedURL}`)
+  })
+  win.webContents.on('render-process-gone', (event, details) => {
+    writeStartupLog(`main window render-process-gone ${JSON.stringify(details)}`)
+  })
   win.removeMenu()
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
@@ -191,7 +220,9 @@ async function createWindow() {
   } else {
     createProtocol('app')
     const indexPath = path.join(__dirname, 'index.html')
-    win.loadURL(`file://${indexPath}#/home`)
+    writeStartupLog(`load main window ${indexPath}`)
+    await win.loadURL(`file://${indexPath}#/home`)
+    writeStartupLog('main window loaded')
     // Load the index.html when not in development
     // win.loadURL('app://./index.html')
   }
@@ -209,6 +240,7 @@ async function createWindow() {
 }
 
 function createChildWindow() {
+  writeStartupLog('create child window')
   childWindow = new BrowserWindow({
     parent: win,
     width: 1200,
@@ -224,16 +256,24 @@ function createChildWindow() {
       nodeIntegrationInWorker: true // 在Web工作器中启用了Node集成
     }
   })
+  childWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    writeStartupLog(`child window did-fail-load ${errorCode} ${errorDescription} ${validatedURL}`)
+  })
+  childWindow.webContents.on('render-process-gone', (event, details) => {
+    writeStartupLog(`child window render-process-gone ${JSON.stringify(details)}`)
+  })
   // childWindow.webContents.openDevTools()
   childWindow.removeMenu()
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     childWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL + '#' + '/sys/index')
     // if (!process.env.IS_TEST) childWindow.webContents.openDevTools()
   } else {
+    writeStartupLog(`load child window ${__dirname}`)
     childWindow.loadURL(`file://${__dirname}/index.html#/sys/index`)
   }
 
   childWindow.on('closed', () => {
+    writeStartupLog('child window closed')
     childWindow = null
   })
 }
