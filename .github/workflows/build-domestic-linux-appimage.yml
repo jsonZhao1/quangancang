@@ -40,5 +40,5 @@ jobs:
       - name: Upload domestic Linux AppImage
         uses: actions/upload-artifact@v4
         with:
-          name: domestic-linux-appimage
+          name: VR管理平台
           path: electron-builder-output-dir/*.AppImage

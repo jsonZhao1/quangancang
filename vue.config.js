@@ -72,7 +72,11 @@ module.exports = {
           warningsAsErrors: false,// nsis警告变错误（防止警告变成报错无法打包）
           include: './build/uninstaller.nsh' // NSIS包含定制安装程序脚本的路径
         },
-        productName: '管理平台',
+        productName: 'VR管理平台',
+        linux: {
+          target: ['AppImage'],
+          artifactName: 'VR管理平台.${ext}'
+        },
         win: {
           icon: './electron-builder-output-dir/.icon-ico/icon.ico',
           target: [
